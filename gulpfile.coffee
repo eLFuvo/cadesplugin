@@ -45,6 +45,7 @@ gulp.task 'libs', (callback)->
     './node_modules/jquery/dist/jquery.js'
     './node_modules/bowser/src/bowser.js'
     './node_modules/es6-promise/dist/es6-promise.js'
+    './node_modules/js-base64/base64.js'
   ]
   .pipe gulp.dest './test/js'
 

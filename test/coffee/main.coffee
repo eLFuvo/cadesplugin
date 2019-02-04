@@ -54,6 +54,9 @@ init = =>
         <input id="ui-data-input" style="width: 500px;" value="Hello World">
       </p>
       <p>
+        <label><input type="checkbox" id="signBase64"> Подписать как Base64 данные</label>
+      </p>
+      <p>
         <button type="button" id="ui-sign-button">Подписать</button>
       </p>
     """
@@ -70,14 +73,26 @@ init = =>
 signData = ->
   certificateIndex = +$('#ui-certificates-select').val()
   data = $('#ui-data-input').val()
+  isBase64 = $('#signBase64').is(':checked')
   unless data
     alert 'Введите данные для подписывания'
-    return
-  altCadesPlugin.signData data, certificatesList[certificateIndex].certificate
-  .then (signature)->
-    $logBlock.append '<pre>' + signature + '</pre>'
-  .fail (message)->
-    if message
-      $logBlock.append '<p style="color: #E23131">' + message + '<p>'
+
+  if isBase64
+    return altCadesPlugin.signDataBase64 data, certificatesList[certificateIndex].certificate
+    .then (signature)->
+      $logBlock.append '<pre>' + signature + '</pre>'
+    .fail (message)->
+      if message
+        console.error(message)
+        $logBlock.append '<p style="color: #E23131">' + message + '<p>'
+
+  if !isBase64
+   return altCadesPlugin.signData data, certificatesList[certificateIndex].certificate
+   .then (signature)->
+     $logBlock.append '<pre>' + signature + '</pre>'
+   .fail (message)->
+     if message
+       console.error(message)
+       $logBlock.append '<p style="color: #E23131">' + message + '<p>'
 
 $ init

@@ -1,6 +1,6 @@
 ###*
 Библиотека для работы с плагином КриптоПРО
-Версия 0.0.6 (beta)
+Версия 0.0.8 (beta)
 Поддерживает плагин версии 2.0.12245
 Репозиторий https://github.com/bankrot/cadesplugin
 ###
@@ -60,6 +60,102 @@ AltCadesPlugin = class
   ###
   isIE: do ->
     return (navigator.appName is 'Microsoft Internet Explorer') or navigator.userAgent.match(/Trident\/./i)
+
+  CAPICOM_LOCAL_MACHINE_STORE: 1
+  CAPICOM_CURRENT_USER_STORE: 2
+  CADESCOM_LOCAL_MACHINE_STORE: 1
+  CADESCOM_CURRENT_USER_STORE: 2
+  CADESCOM_CONTAINER_STORE: 100
+
+  CAPICOM_MY_STORE: "My"
+
+  CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED: 2
+
+  CAPICOM_CERTIFICATE_FIND_SUBJECT_NAME: 1
+
+  CADESCOM_XML_SIGNATURE_TYPE_ENVELOPED: 0
+  CADESCOM_XML_SIGNATURE_TYPE_ENVELOPING: 1
+  CADESCOM_XML_SIGNATURE_TYPE_TEMPLATE: 2
+
+  XmlDsigGost3410UrlObsolete: "http://www.w3.org/2001/04/xmldsig-more#gostr34102001-gostr3411"
+  XmlDsigGost3411UrlObsolete: "http://www.w3.org/2001/04/xmldsig-more#gostr3411"
+  XmlDsigGost3410Url: "urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr34102001-gostr3411"
+  XmlDsigGost3411Url: "urn:ietf:params:xml:ns:cpxmlsec:algorithms:gostr3411"
+
+  CADESCOM_CADES_DEFAULT: 0
+  CADESCOM_CADES_BES: 1
+  CADESCOM_CADES_T: 0x5
+  CADESCOM_CADES_X_LONG_TYPE_1: 0x5d
+
+  CADESCOM_ENCODE_BASE64: 0
+  CADESCOM_ENCODE_BINARY: 1
+  CADESCOM_ENCODE_ANY: -1
+
+  CAPICOM_CERTIFICATE_INCLUDE_CHAIN_EXCEPT_ROOT: 0
+  CAPICOM_CERTIFICATE_INCLUDE_WHOLE_CHAIN: 1
+  CAPICOM_CERTIFICATE_INCLUDE_END_ENTITY_ONLY: 2
+
+  CAPICOM_CERT_INFO_SUBJECT_SIMPLE_NAME: 0
+  CAPICOM_CERT_INFO_ISSUER_SIMPLE_NAME: 1
+
+  CAPICOM_CERTIFICATE_FIND_SHA1_HASH: 0
+  CAPICOM_CERTIFICATE_FIND_SUBJECT_NAME: 1
+  CAPICOM_CERTIFICATE_FIND_ISSUER_NAME: 2
+  CAPICOM_CERTIFICATE_FIND_ROOT_NAME: 3
+  CAPICOM_CERTIFICATE_FIND_TEMPLATE_NAME: 4
+  CAPICOM_CERTIFICATE_FIND_EXTENSION: 5
+  CAPICOM_CERTIFICATE_FIND_EXTENDED_PROPERTY: 6
+  CAPICOM_CERTIFICATE_FIND_APPLICATION_POLICY: 7
+  CAPICOM_CERTIFICATE_FIND_CERTIFICATE_POLICY: 8
+  CAPICOM_CERTIFICATE_FIND_TIME_VALID: 9
+  CAPICOM_CERTIFICATE_FIND_TIME_NOT_YET_VALID: 10
+  CAPICOM_CERTIFICATE_FIND_TIME_EXPIRED: 11
+  CAPICOM_CERTIFICATE_FIND_KEY_USAGE: 12
+
+  CAPICOM_DIGITAL_SIGNATURE_KEY_USAGE: 128
+
+  CAPICOM_PROPID_ENHKEY_USAGE: 9
+
+  CAPICOM_OID_OTHER: 0
+  CAPICOM_OID_KEY_USAGE_EXTENSION: 10
+
+  CAPICOM_EKU_CLIENT_AUTH: 2
+  CAPICOM_EKU_SMARTCARD_LOGON: 5
+  CAPICOM_EKU_OTHER: 0
+
+  CAPICOM_AUTHENTICATED_ATTRIBUTE_SIGNING_TIME: 0
+  CADESCOM_AUTHENTICATED_ATTRIBUTE_DOCUMENT_NAME: 1
+  CADESCOM_AUTHENTICATED_ATTRIBUTE_DOCUMENT_DESCRIPTION: 2
+  CADESCOM_ATTRIBUTE_OTHER: -1
+
+  CADESCOM_STRING_TO_UCS2LE: 0
+  CADESCOM_BASE64_TO_BINARY: 1
+
+  CADESCOM_DISPLAY_DATA_NONE: 0
+  CADESCOM_DISPLAY_DATA_CONTENT: 1
+  CADESCOM_DISPLAY_DATA_ATTRIBUTE: 2
+
+  CADESCOM_ENCRYPTION_ALGORITHM_RC2: 0
+  CADESCOM_ENCRYPTION_ALGORITHM_RC4: 1
+  CADESCOM_ENCRYPTION_ALGORITHM_DES: 2
+  CADESCOM_ENCRYPTION_ALGORITHM_3DES: 3
+  CADESCOM_ENCRYPTION_ALGORITHM_AES: 4
+  CADESCOM_ENCRYPTION_ALGORITHM_GOST_28147_89: 25
+
+  CADESCOM_HASH_ALGORITHM_SHA1: 0
+  CADESCOM_HASH_ALGORITHM_MD2: 1
+  CADESCOM_HASH_ALGORITHM_MD4: 2
+  CADESCOM_HASH_ALGORITHM_MD5: 3
+  CADESCOM_HASH_ALGORITHM_SHA_256: 4
+  CADESCOM_HASH_ALGORITHM_SHA_384: 5
+  CADESCOM_HASH_ALGORITHM_SHA_512: 6
+  CADESCOM_HASH_ALGORITHM_CP_GOST_3411: 100
+  CADESCOM_HASH_ALGORITHM_CP_GOST_3411_2012_256: 101
+  CADESCOM_HASH_ALGORITHM_CP_GOST_3411_2012_512: 102
+
+  LOG_LEVEL_DEBUG: 4
+  LOG_LEVEL_INFO: 2
+  LOG_LEVEL_ERROR: 1
 
   ###*
   Конструктор
@@ -484,8 +580,63 @@ AltCadesPlugin = class
       signedData = signedData_
       @set signedData, 'Content', data
     .then =>
-      @set signer, 'Options', 1
+      @set signer, 'Options', @.CAPICOM_CERTIFICATE_INCLUDE_WHOLE_CHAIN
     .then =>
-      @get signedData, {method: 'SignCades', args: [signer, 1]}
+      @get signedData, {method: 'SignCades', args: [signer, @.CADESCOM_CADES_BES]}
     .then (signature)=>
       return signature
+
+  ###*
+  Подписывает данные в Base64
+  @method signData
+  @param data [String} Строка которую надо зашифровать (подписать)
+  @param certificate {Object} Объект сертификата полученный из плагина
+  @return {jQuery.Deferred} В первый аргумент колбэка передается зашифрованная строка
+  ###
+  signDataBase64: (data, certificate)->
+    signer = null
+    signedData = null
+
+    @get 'CAdESCOM.CPSigner'
+      .then (signer_)=>
+        signer = signer_
+
+        # следующая часть нужна только для webkit плагина
+        unless @isWebkit
+          return
+
+        attribute1 = null
+        attribute2 = null
+
+        @get 'CAdESCOM.CPAttribute'
+          .then (attribute1_)=>
+            attribute1 = attribute1_
+            @set attribute1, 'Name', 0
+          .then =>
+            @set attribute1, 'Value', new Date()
+          .then =>
+            @get signer, 'AuthenticatedAttributes2', {method: 'Add', args: [attribute1]}
+          .then =>
+            @get 'CADESCOM.CPAttribute'
+          .then (attribute2_)=>
+            attribute2 = attribute2_
+            @set attribute2, 'Name', 1
+          .then =>
+            @set attribute2, 'Value', 'Document Name'
+          .then =>
+            @get signer, 'AuthenticatedAttributes2', {method: 'Add', args: [attribute2]}
+
+      .then =>
+        @set signer, 'Certificate', certificate
+      .then =>
+        @get 'CAdESCOM.CadesSignedData'
+      .then (signedData_)=>
+       signedData = signedData_
+       signedData.ContentEncoding = @.CADESCOM_BASE64_TO_BINARY
+       @set signedData, 'Content', Base64.encode(data)
+      .then =>
+       @set signer, 'Options', @.CAPICOM_CERTIFICATE_INCLUDE_WHOLE_CHAIN
+      .then =>
+       @get signedData, {method: 'SignCades', args: [signer, @.CADESCOM_CADES_BES]}
+      .then (signature)=>
+        return signature

@@ -44,7 +44,7 @@ init = (function(_this) {
       selectHtml += '</select></p>';
       return $logBlock.append(selectHtml);
     }).then(function() {
-      $logBlock.append("<p>\n  Введите данные которые надо подписать\n  <br>\n  <input id=\"ui-data-input\" style=\"width: 500px;\" value=\"Hello World\">\n</p>\n<p>\n  <button type=\"button\" id=\"ui-sign-button\">Подписать</button>\n</p>");
+      $logBlock.append("<p>\n  Введите данные которые надо подписать\n  <br>\n  <input id=\"ui-data-input\" style=\"width: 500px;\" value=\"Hello World\">\n</p>\n<p>\n  <label><input type=\"checkbox\" id=\"signBase64\"> Подписать как Base64 данные</label>\n</p>\n<p>\n  <button type=\"button\" id=\"ui-sign-button\">Подписать</button>\n</p>");
       return $('#ui-sign-button').on('click', signData);
     }).fail(function(message) {
       if (message) {
@@ -61,20 +61,33 @@ init = (function(_this) {
  */
 
 signData = function() {
-  var certificateIndex, data;
+  var certificateIndex, data, isBase64;
   certificateIndex = +$('#ui-certificates-select').val();
   data = $('#ui-data-input').val();
+  isBase64 = $('#signBase64').is(':checked');
   if (!data) {
     alert('Введите данные для подписывания');
-    return;
   }
-  return altCadesPlugin.signData(data, certificatesList[certificateIndex].certificate).then(function(signature) {
-    return $logBlock.append('<pre>' + signature + '</pre>');
-  }).fail(function(message) {
-    if (message) {
-      return $logBlock.append('<p style="color: #E23131">' + message + '<p>');
-    }
-  });
+  if (isBase64) {
+    return altCadesPlugin.signDataBase64(data, certificatesList[certificateIndex].certificate).then(function(signature) {
+      return $logBlock.append('<pre>' + signature + '</pre>');
+    }).fail(function(message) {
+      if (message) {
+        console.error(message);
+        return $logBlock.append('<p style="color: #E23131">' + message + '<p>');
+      }
+    });
+  }
+  if (!isBase64) {
+    return altCadesPlugin.signData(data, certificatesList[certificateIndex].certificate).then(function(signature) {
+      return $logBlock.append('<pre>' + signature + '</pre>');
+    }).fail(function(message) {
+      if (message) {
+        console.error(message);
+        return $logBlock.append('<p style="color: #E23131">' + message + '<p>');
+      }
+    });
+  }
 };
 
 $(init);
