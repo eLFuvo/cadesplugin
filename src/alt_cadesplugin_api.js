@@ -900,6 +900,29 @@ AltCadesPlugin = (function() {
     })(this));
   };
 
+
+  /**
+  Проверяет подписанные данные
+  @method verifySign
+  @param signature [String} Подпись
+  @param isBase64 [Boolean} данные в base64?
+  @return {jQuery.Deferred}
+   */
+
+  _Class.prototype.verifySign = function(signature) {
+    var signedData;
+    signedData = null;
+    return this.get('CAdESCOM.CadesSignedData').then((function(_this) {
+      return function(signedData_) {
+        return signedData = signedData_;
+      };
+    })(this)).then((function(_this) {
+      return function() {
+        return signedData.VerifyCades(signature, _this.CADESCOM_CADES_BES);
+      };
+    })(this));
+  };
+
   return _Class;
 
 })();

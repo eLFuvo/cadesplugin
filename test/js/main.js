@@ -1,4 +1,4 @@
-var $logBlock, altCadesPlugin, certificatesList, init, signData;
+var $logBlock, altCadesPlugin, certificatesList, init, signData, verifySign;
 
 altCadesPlugin = null;
 
@@ -21,7 +21,7 @@ init = (function(_this) {
     }
     return deferred.then(function() {
       $logBlock.append('<p>Плагин подключен<p>');
-      return $.when(altCadesPlugin.getVersion(), $.get('/sites/default/files/products/cades/latest_2_0.txt'));
+      return $.when(altCadesPlugin.getVersion(), $.get('https://www.cryptopro.ru/sites/default/files/products/cades/latest_2_0.txt'));
     }).then(function(installedVersion, currentVersion) {
       var ref;
       if (installedVersion.full === ((ref = currentVersion[0]) != null ? ref.trim() : void 0)) {
@@ -44,8 +44,9 @@ init = (function(_this) {
       selectHtml += '</select></p>';
       return $logBlock.append(selectHtml);
     }).then(function() {
-      $logBlock.append("<p>\n  Введите данные которые надо подписать\n  <br>\n  <input id=\"ui-data-input\" style=\"width: 500px;\" value=\"Hello World\">\n</p>\n<p>\n  <label><input type=\"checkbox\" id=\"signBase64\"> Подписать как Base64 данные</label>\n</p>\n<p>\n  <button type=\"button\" id=\"ui-sign-button\">Подписать</button>\n</p>");
-      return $('#ui-sign-button').on('click', signData);
+      $logBlock.append("<p>\n  Введите данные которые надо подписать\n  <br>\n  <input id=\"ui-data-input\" style=\"width: 500px;\" value=\"Hello World\">\n</p>\n<p>\n  <label><input type=\"checkbox\" id=\"signBase64\"> Подписать как Base64 данные</label>\n</p>\n<p>\n  <button type=\"button\" id=\"ui-sign-button\">Подписать</button>&nbsp;&nbsp;\n  <button type=\"button\" id=\"ui-verify-button\" disabled=\"disabled\">Проверить подпись</button>\n</p>");
+      $('#ui-sign-button').on('click', signData);
+      return $('#ui-verify-button').on('click', verifySign);
     }).fail(function(message) {
       if (message) {
         return $logBlock.append('<p style="color: #E23131">' + message + '<p>');
@@ -70,7 +71,8 @@ signData = function() {
   }
   if (isBase64) {
     return altCadesPlugin.signDataBase64(data, certificatesList[certificateIndex].certificate).then(function(signature) {
-      return $logBlock.append('<pre>' + signature + '</pre>');
+      $logBlock.append('<pre id="signature">' + signature + '</pre>');
+      return $("#ui-verify-button").prop("disabled", false);
     }).fail(function(message) {
       if (message) {
         console.error(message);
@@ -80,7 +82,8 @@ signData = function() {
   }
   if (!isBase64) {
     return altCadesPlugin.signData(data, certificatesList[certificateIndex].certificate).then(function(signature) {
-      return $logBlock.append('<pre>' + signature + '</pre>');
+      $logBlock.append('<pre id="signature">' + signature + '</pre>');
+      return $("#ui-verify-button").prop("disabled", false);
     }).fail(function(message) {
       if (message) {
         console.error(message);
@@ -88,6 +91,27 @@ signData = function() {
       }
     });
   }
+};
+
+
+/**
+Проверка подписанных данных
+@verifySign
+ */
+
+verifySign = function() {
+  var signature;
+  signature = $('#signature').text();
+  return altCadesPlugin.verifySign(signature).then((function(_this) {
+    return function() {
+      return alert('Успешная проверка подписи');
+    };
+  })(this)).fail((function(_this) {
+    return function(message) {
+      alert('Подпись не действительна');
+      return console.error(message);
+    };
+  })(this));
 };
 
 $(init);

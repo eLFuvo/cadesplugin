@@ -640,3 +640,17 @@ AltCadesPlugin = class
        @get signedData, {method: 'SignCades', args: [signer, @.CADESCOM_CADES_BES]}
       .then (signature)=>
         return signature
+  ###*
+  Проверяет подписанные данные
+  @method verifySign
+  @param signature [String} Подпись
+  @param isBase64 [Boolean} данные в base64?
+  @return {jQuery.Deferred}
+  ###
+  verifySign: (signature)->
+    signedData = null
+    @get 'CAdESCOM.CadesSignedData'
+      .then (signedData_)=>
+       signedData = signedData_
+      .then =>
+        return signedData.VerifyCades(signature, @.CADESCOM_CADES_BES)

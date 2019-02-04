@@ -20,7 +20,7 @@ init = =>
     $logBlock.append '<p>Плагин подключен<p>'
     $.when(
       altCadesPlugin.getVersion()
-      $.get '/sites/default/files/products/cades/latest_2_0.txt'
+      $.get 'https://www.cryptopro.ru/sites/default/files/products/cades/latest_2_0.txt'
     )
 
   # проверка версии CSP
@@ -57,10 +57,12 @@ init = =>
         <label><input type="checkbox" id="signBase64"> Подписать как Base64 данные</label>
       </p>
       <p>
-        <button type="button" id="ui-sign-button">Подписать</button>
+        <button type="button" id="ui-sign-button">Подписать</button>&nbsp;&nbsp;
+        <button type="button" id="ui-verify-button" disabled="disabled">Проверить подпись</button>
       </p>
     """
     $('#ui-sign-button').on 'click', signData
+    $('#ui-verify-button').on 'click', verifySign
 
   .fail (message)->
     if message
@@ -80,7 +82,8 @@ signData = ->
   if isBase64
     return altCadesPlugin.signDataBase64 data, certificatesList[certificateIndex].certificate
     .then (signature)->
-      $logBlock.append '<pre>' + signature + '</pre>'
+      $logBlock.append '<pre id="signature">' + signature + '</pre>'
+      $("#ui-verify-button").prop("disabled", false);
     .fail (message)->
       if message
         console.error(message)
@@ -89,10 +92,24 @@ signData = ->
   if !isBase64
    return altCadesPlugin.signData data, certificatesList[certificateIndex].certificate
    .then (signature)->
-     $logBlock.append '<pre>' + signature + '</pre>'
+     $logBlock.append '<pre id="signature">' + signature + '</pre>'
+     $("#ui-verify-button").prop("disabled", false);
    .fail (message)->
      if message
        console.error(message)
        $logBlock.append '<p style="color: #E23131">' + message + '<p>'
+
+###*
+Проверка подписанных данных
+@verifySign
+###
+verifySign = ->
+  signature = $('#signature').text();
+  altCadesPlugin.verifySign signature
+    .then =>
+      alert('Успешная проверка подписи')
+    .fail (message) =>
+      alert('Подпись не действительна')
+      console.error(message)
 
 $ init
